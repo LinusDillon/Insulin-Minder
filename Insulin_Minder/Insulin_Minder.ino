@@ -1,9 +1,11 @@
 /*********************************************************************
-Insulin Monitor v2
+Insulin Minder
 * OLED 128x32 I2C SSD1306 Display
 * DS18B20 Temperature Sensor
 * 5-Way Navigation Stick
 * Adafruit 3.3V 12MHz Trinket Pro
+* Battery monitoring via internal voltage reference
+* Battery management via Trinket Pro LiPo backpack
 *********************************************************************/
 
 #include <SPI.h>
