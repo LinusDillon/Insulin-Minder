@@ -33,7 +33,7 @@ Adafruit_SSD1306 display(OLED_RESET);
 #define NAV_W_PIN 12
 #define NAV_C_PIN 9
 
-int loopCounter;
+unsigned long masterTime;
 
 void setup()   {                
   // Setup the pins for the navigation stick
@@ -44,7 +44,7 @@ void setup()   {
   pinMode(NAV_C_PIN, INPUT_PULLUP);
   
   pinMode(13, OUTPUT);
-  loopCounter = 0;
+  masterTime = 0;
 
   // Initialise the temperature sensor
   getTemperature2(TEMP_SENSOR_PIN, 1);
@@ -75,17 +75,25 @@ void loop() {
   displayOn();
   display.clearDisplay();
   //drawTemperatureHistory();
-  display.setCursor(8, 10);
+  display.setCursor(0, 0);
+  display.print("temp:    ");
   display.print(temperature);
+  display.println();
   
+  display.print("vcc:     ");
+  display.print(getVcc());
+  display.println();
+  
+  display.print("nav:     ");
   if (digitalRead(NAV_N_PIN) == LOW) display.print("N");
   if (digitalRead(NAV_S_PIN) == LOW) display.print("S");
   if (digitalRead(NAV_E_PIN) == LOW) display.print("E");
   if (digitalRead(NAV_W_PIN) == LOW) display.print("W");
   if (digitalRead(NAV_C_PIN) == LOW) display.print("C");
+  display.println();
   
-  loopCounter ++;
-  display.print(loopCounter);
+  display.print("seconds: ");
+  display.print(masterTime);
   
   display.display();
   
@@ -93,7 +101,7 @@ void loop() {
   
   displayOff();
   
-  sleep();
+  //sleep();
 }
 
 void displayOn() {
@@ -163,16 +171,20 @@ ISR(PCINT0_vect) {
    // This is called when the interrupt occurs, but it doesn't need to do anything as the
    // interrupt is just used to wake the microcontroller from sleep
    
-  if (digitalRead (13) == HIGH)
-    digitalWrite (13, LOW);
-  else
-    digitalWrite (13, HIGH);
+  //  if (digitalRead (13) == HIGH)
+  //    digitalWrite (13, LOW);
+  //  else
+  //    digitalWrite (13, HIGH);
 }
 
-// Interupt handler forwatchdog timer
+// Interupt handler for watchdog timer
 ISR(WDT_vect) {
-   // This is called when the interrupt occurs, but it doesn't need to do anything as the
-   // interrupt is just used to wake the microcontroller from sleep
+   // This is called when the interrupt occurs.
+   // We use this to:
+   // i)  Update the master time (as the WDT is now the only means we have of keeping time as the normal timers won't run when asleap).
+   // ii) Kick off the main "awake" loop - normally this will go to sleep immediatly unless we need to record the temperature or are 
+   //     already awake doing UI stuff.
+   masterTime += 8;
 }
 
 // Code taken from http://www.scargill.net/reading-dallas-ds18b20-chips-quickly/
@@ -200,6 +212,21 @@ int16_t getTemperature2(int x, byte start)
     if (start) delay(1000);
   }
   while (start --);
+  return result;
+}
+
+// Code taken from https://code.google.com/p/tinkerit/wiki/SecretVoltmeter
+// Thanks to cathed...@gmail.com (full email not disclosed) / TinkerLondon / Tinker.it
+long getVcc() {
+  long result;
+  // Read 1.1V reference against AVcc
+  ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+  delay(2); // Wait for Vref to settle
+  ADCSRA |= _BV(ADSC); // Convert
+  while (bit_is_set(ADCSRA,ADSC));
+  result = ADCL;
+  result |= ADCH<<8;
+  result = 1126400L / result; // Back-calculate AVcc in mV
   return result;
 }
 
