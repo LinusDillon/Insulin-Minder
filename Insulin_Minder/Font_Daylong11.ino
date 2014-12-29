@@ -7,7 +7,9 @@
 // End character: Z
 // Width, in pixels, of space character: 2
 
-const prog_uchar Bit_Daylong11[] PROGMEM = 
+#include <avr/pgmspace.h>
+
+prog_uchar Bit_Daylong11[] PROGMEM = 
 {
 	// @0 '.' (2 pixels wide)
 	0xC0, // ##
@@ -362,7 +364,7 @@ const prog_uchar Bit_Daylong11[] PROGMEM =
 	0x83, // #     ##
 };
 
-const prog_uchar Bit_Daylong11_width[] PROGMEM = 
+prog_uchar Bit_Daylong11_width[] PROGMEM = 
 {
 	2, 		// . 
 	4, 		// / 
@@ -411,7 +413,7 @@ const prog_uchar Bit_Daylong11_width[] PROGMEM =
 	6, 		// Z 
 };
 
-const prog_uchar Bit_Daylong11_offset[] PROGMEM = 
+prog_uint16_t Bit_Daylong11_offset[] PROGMEM = 
 {
 	0, 			// . 
 	2, 			// / 

@@ -37,6 +37,10 @@ Adafruit_SSD1306 display(OLED_RESET);
 
 unsigned long masterTime;
 
+extern prog_uchar Bit_Daylong11[] PROGMEM;
+extern prog_uchar Bit_Daylong11_width[] PROGMEM;
+extern prog_uint16_t Bit_Daylong11_offset[] PROGMEM;
+
 void setup()   {                
   // Setup the pins for the navigation stick
   pinMode(NAV_N_PIN, INPUT_PULLUP);
@@ -96,6 +100,8 @@ void loop() {
   
   display.print("seconds: ");
   display.print(masterTime);
+  
+  flexDrawChar(&display, 64, 4, 'A', WHITE, BLACK, Bit_Daylong11, Bit_Daylong11_width, Bit_Daylong11_offset, 8);  
   
   display.display();
   
