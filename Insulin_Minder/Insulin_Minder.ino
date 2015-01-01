@@ -82,26 +82,28 @@ void loop() {
   display.clearDisplay();
   //drawTemperatureHistory();
   display.setCursor(0, 0);
-  display.print("temp:    ");
-  display.print(temperature);
-  display.println();
+//  display.print("temp:    ");
+//  display.print(temperature);
+//  display.println();
   
-  display.print("vcc:     ");
-  display.print(getVcc());
-  display.println();
+//  display.print("vcc:     ");
+//  display.print(getVcc());
+//  display.println();
+//  
+//  display.print("nav:     ");
+//  if (digitalRead(NAV_N_PIN) == LOW) display.print("N");
+//  if (digitalRead(NAV_S_PIN) == LOW) display.print("S");
+//  if (digitalRead(NAV_E_PIN) == LOW) display.print("E");
+//  if (digitalRead(NAV_W_PIN) == LOW) display.print("W");
+//  if (digitalRead(NAV_C_PIN) == LOW) display.print("C");
+//  display.println();
+//  
+//  display.print("seconds: ");
+//  display.print(masterTime);
   
-  display.print("nav:     ");
-  if (digitalRead(NAV_N_PIN) == LOW) display.print("N");
-  if (digitalRead(NAV_S_PIN) == LOW) display.print("S");
-  if (digitalRead(NAV_E_PIN) == LOW) display.print("E");
-  if (digitalRead(NAV_W_PIN) == LOW) display.print("W");
-  if (digitalRead(NAV_C_PIN) == LOW) display.print("C");
-  display.println();
-  
-  display.print("seconds: ");
-  display.print(masterTime);
-  
-  flexDrawChar(&display, 64, 4, 'A', WHITE, BLACK, Bit_Daylong11, Bit_Daylong11_width, Bit_Daylong11_offset, 8);  
+  flexFontSetPos(0, 0);
+  flexFontColour(WHITE);
+  flexFontDrawString(&display, "A TEST OF HOW MUCH TEXT CAN BE FIT.", Bit_Daylong11, Bit_Daylong11_width, Bit_Daylong11_offset, 8, '.');  
   
   display.display();
   
