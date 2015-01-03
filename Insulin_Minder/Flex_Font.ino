@@ -47,8 +47,7 @@ void flexFontColour(int16_t colour)
 }
 
 void flexFontDrawString(Adafruit_GFX* gfx, String s, prog_uchar* font, prog_uchar* fontWidth, prog_uint16_t* fontOffset, byte fontHeight, char fontStartChar)
-{
-  
+{ 
   for (int i = 0; i < s.length(); i ++)
   {
     flexFontDrawChar(gfx, s.charAt(i), font, fontWidth, fontOffset, fontHeight, fontStartChar);
