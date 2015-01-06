@@ -20,7 +20,7 @@ void flexFontDrawChar(Adafruit_GFX* gfx, unsigned char c, prog_uchar* font, prog
   // Output each column (characters are stored as one byte per column, so a maximum height of 8 pixels)
   for (byte colIndex = 0; colIndex < width; colIndex ++)
   {
-    byte colData = pgm_read_byte(offset + colIndex);
+    byte colData = pgm_read_byte(offset + colIndex) >> (8 - fontHeight);
     
     // Output a pixel for each row in the current column.
     for (byte rowIndex = 0; rowIndex < fontHeight; rowIndex ++)
@@ -33,6 +33,39 @@ void flexFontDrawChar(Adafruit_GFX* gfx, unsigned char c, prog_uchar* font, prog
     }
   }
   flexFontX += width + 1;
+}
+
+void flexFontDrawCharRA(Adafruit_GFX* gfx, unsigned char c, prog_uchar* font, prog_uchar* fontWidth, prog_uint16_t* fontOffset, byte fontHeight, char fontStartChar)
+{
+  // Space is a special case
+  if (c == ' ')
+  {
+    flexFontX -= fontHeight / 2;
+    return;
+  }
+  
+  // The width of the character (support characters up to 255 wide)
+  byte width = pgm_read_byte(fontWidth + c - fontStartChar);
+
+  // Get the program memory offset for the character in the font data
+  prog_uchar* offset = font + pgm_read_word(fontOffset + c - fontStartChar);
+  
+  // Output each column (characters are stored as one byte per column, so a maximum height of 8 pixels)
+  flexFontX -= width + 1;
+  for (byte colIndex = 0; colIndex < width; colIndex ++)
+  {
+    byte colData = pgm_read_byte(offset + colIndex) >> (8 - fontHeight);
+    
+    // Output a pixel for each row in the current column.
+    for (byte rowIndex = 0; rowIndex < fontHeight; rowIndex ++)
+    {
+      if (colData & 0x01) {
+        gfx->drawPixel(flexFontX + colIndex, flexFontY + rowIndex, flexFontColor);
+      }
+      
+      colData >>= 1;
+    }
+  }
 }
 
 void flexFontSetPos(int16_t x, int16_t y)
@@ -51,5 +84,13 @@ void flexFontDrawString(Adafruit_GFX* gfx, String s, prog_uchar* font, prog_ucha
   for (int i = 0; i < s.length(); i ++)
   {
     flexFontDrawChar(gfx, s.charAt(i), font, fontWidth, fontOffset, fontHeight, fontStartChar);
+  }
+}
+
+void flexFontDrawStringRA(Adafruit_GFX* gfx, String s, prog_uchar* font, prog_uchar* fontWidth, prog_uint16_t* fontOffset, byte fontHeight, char fontStartChar)
+{ 
+  for (int i = s.length() - 1; i >= 0; i --)
+  {
+    flexFontDrawCharRA(gfx, s.charAt(i), font, fontWidth, fontOffset, fontHeight, fontStartChar);
   }
 }

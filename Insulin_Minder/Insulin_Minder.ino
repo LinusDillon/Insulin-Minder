@@ -25,6 +25,11 @@ extern prog_uchar Bit_Daylong11[] PROGMEM;
 extern prog_uchar Bit_Daylong11_width[] PROGMEM;
 extern prog_uint16_t Bit_Daylong11_offset[] PROGMEM;
 
+// External definitions for picopixel5 font module
+extern prog_uchar Picopixel5[] PROGMEM;
+extern prog_uchar Picopixel5_width[] PROGMEM;
+extern prog_uint16_t Picopixel5_offset[] PROGMEM;
+
 // External definitions for flex font module
 extern int16_t flexFontX;
 extern int16_t flexFontY;
@@ -59,6 +64,9 @@ Bounce navC = Bounce(NAV_C_PIN, NAV_DEBOUNCE_TIME);
 const int TEMPERATURE_RECORDS = 100;
 const int TEMPERATURE_REC_INTERVAL_SECONDS = (30 * 60);
 
+const int MIN_TEMP_ALARM = -50 * 16;
+const int MAX_TEMP_ALARM = 100 * 16;
+
 // EEPROM storage settings
 const unsigned int EEPROM_OFFSET_TEMPERATURE_MIN = 0;
 const unsigned int EEPROM_OFFSET_TEMPERATURE_AVG = EEPROM_OFFSET_TEMPERATURE_MIN + (TEMPERATURE_RECORDS * 1);
@@ -66,7 +74,9 @@ const unsigned int EEPROM_OFFSET_TEMPERATURE_MAX = EEPROM_OFFSET_TEMPERATURE_AVG
 const unsigned int EEPROM_OFFSET_TEMPERATURE_TOTAL_MIN = EEPROM_OFFSET_TEMPERATURE_MAX + (TEMPERATURE_RECORDS * 3);
 const unsigned int EEPROM_OFFSET_TEMPERATURE_TOTAL_MAX = EEPROM_OFFSET_TEMPERATURE_TOTAL_MIN + 2;
 const unsigned int EEPROM_OFFSET_TEMPERATURE_INDEX = EEPROM_OFFSET_TEMPERATURE_TOTAL_MAX + 2;
-const unsigned int EEPROM_MAX = EEPROM_OFFSET_TEMPERATURE_INDEX + 2;
+const unsigned int EEPROM_OFFSET_TEMPERATURE_ALARM_MAX = EEPROM_OFFSET_TEMPERATURE_INDEX + 2;
+const unsigned int EEPROM_OFFSET_TEMPERATURE_ALARM_MIN = EEPROM_OFFSET_TEMPERATURE_ALARM_MAX + 2;
+const unsigned int EEPROM_MAX = EEPROM_OFFSET_TEMPERATURE_ALARM_MIN + 2;
 
 // UI Constants
 const unsigned long UI_INACTIVITY_MILLISECONDS = 10000;
@@ -110,7 +120,11 @@ void setup()   {
   lastTemperatureTime = 0;
   
   // Clear the EEPROM
-  clearEEPROM();
+  //clearEEPROM();
+  
+  // Make sure settings are in valid range
+  adjustTemperatureAlarmSetting(EEPROM_OFFSET_TEMPERATURE_ALARM_MIN, 0, MIN_TEMP_ALARM, MAX_TEMP_ALARM);
+  adjustTemperatureAlarmSetting(EEPROM_OFFSET_TEMPERATURE_ALARM_MAX, 0, MIN_TEMP_ALARM, MAX_TEMP_ALARM);
 
   // Initialise the temperature sensor
   getTemperature(TEMP_SENSOR_PIN, 1);
@@ -120,8 +134,8 @@ void setup()   {
   // initialize with the I2C addr 0x3C (for the 128x32)
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  
   display.display();
-  display.setTextSize(1);
-  display.setTextColor(WHITE);  
+  //display.setTextSize(1);
+  //display.setTextColor(WHITE);  
   flexFontColour(WHITE);
   
   // Setup interrupts for navigation stick
@@ -140,36 +154,10 @@ void setup()   {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void loop() {
-//  displayOn();
-//  display.clearDisplay();
-  //drawTemperatureHistory();
-//  display.setCursor(0, 0);
-//  display.print("temp:    ");
-//  display.print(temperature);
-//  display.println();
   
 //  display.print("vcc:     ");
 //  display.print(getVcc());
 //  display.println();
-//  
-//  display.print("nav:     ");
-//  if (digitalRead(NAV_N_PIN) == LOW) display.print("N");
-//  if (digitalRead(NAV_S_PIN) == LOW) display.print("S");
-//  if (digitalRead(NAV_E_PIN) == LOW) display.print("E");
-//  if (digitalRead(NAV_W_PIN) == LOW) display.print("W");
-//  if (digitalRead(NAV_C_PIN) == LOW) display.print("C");
-//  display.println();
-//  
-//  display.print("seconds: ");
-//  display.print(masterTime);
-  
-//  flexFontSetPos(0, 0);
-//  flexFontColour(WHITE);
-//  flexFontDrawString(&display, "A TEST OF HOW MUCH TEXT CAN BE FIT.", Bit_Daylong11, Bit_Daylong11_width, Bit_Daylong11_offset, 8, '.');  
-  
-//  display.display();
-  
-//  delay(2000);
   
   
   // Record temperature if due.
@@ -207,10 +195,10 @@ void uiLoop()
         drawTemperatureHistogram();
         break;
       case UI_STATE_SET_MAX_TEMPERATURE :
-        drawTemperatureAlarmMax();
+        drawTemperatureAlarm("MAX TEMP ALARM", EEPROM_OFFSET_TEMPERATURE_ALARM_MAX);
         break;
       case UI_STATE_SET_MIN_TEMPERATURE :
-        drawTemperatureAlarmMin();
+        drawTemperatureAlarm("MIN TEMP ALARM", EEPROM_OFFSET_TEMPERATURE_ALARM_MIN);
         break;
       case UI_STATE_FRESH_INSULIN :
         drawInsulinChange();
@@ -237,8 +225,18 @@ void uiLoop()
           // no user interaction on this screen
           break;
         case UI_STATE_SET_MAX_TEMPERATURE :
+          if (nav == NAV_W_PIN) {
+            adjustTemperatureAlarmSetting(EEPROM_OFFSET_TEMPERATURE_ALARM_MAX, -4, EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_ALARM_MIN), MAX_TEMP_ALARM);
+          } else if (nav == NAV_E_PIN) {
+            adjustTemperatureAlarmSetting(EEPROM_OFFSET_TEMPERATURE_ALARM_MAX, 4, EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_ALARM_MIN), MAX_TEMP_ALARM);
+          }
           break;
         case UI_STATE_SET_MIN_TEMPERATURE :
+          if (nav == NAV_W_PIN) {
+            adjustTemperatureAlarmSetting(EEPROM_OFFSET_TEMPERATURE_ALARM_MIN, -4, MIN_TEMP_ALARM, EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_ALARM_MAX));
+          } else if (nav == NAV_E_PIN) {
+            adjustTemperatureAlarmSetting(EEPROM_OFFSET_TEMPERATURE_ALARM_MIN, 4, MIN_TEMP_ALARM, EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_ALARM_MAX));
+          }
           break;
         case UI_STATE_FRESH_INSULIN :
           break;
@@ -293,28 +291,58 @@ void drawTemperatureHistory() {
   display.clearDisplay();
   
   // draw time axis
-  display.setCursor(0, 0);
-  display.print("2d");
-  display.setCursor(40, 0);
-  display.println("1d");
-  display.setCursor(80, 0);
-  display.println("Now");
+  flexFontSetPos(0, 0);
+  flexFontDrawStringSmall("2D");
+  flexFontSetPos(47, 0);
+  flexFontDrawStringSmall("1D");
+  flexFontSetPos(100, 0);
+  flexFontDrawStringSmallRA("NOW");
   
   // write min/max/current
-  flexFontSetPos(100, 0);
+  flexFontSetPos(127, 0);
   t = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_TOTAL_MAX);
-  flexFontDrawStringLarge(temperatureWholeToString(t) + "." + temperatureDecimalsToString(t));
+  flexFontDrawStringLargeRA(temperatureToString(t));
 
-  flexFontSetPos(100, 12);
-  flexFontDrawStringLarge(temperatureWholeToString(currentTemperature) + "." + temperatureDecimalsToString(currentTemperature));
+  flexFontSetPos(127, 12);
+  flexFontDrawStringLargeRA(temperatureToString(currentTemperature));
 
-  flexFontSetPos(100, 23);
+  flexFontSetPos(127, 23);
   t = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_TOTAL_MIN);
-  flexFontDrawStringLarge(temperatureWholeToString(t) + "." + temperatureDecimalsToString(t));
+  flexFontDrawStringLargeRA(temperatureToString(t));
   
   // draw min/max/average lines
+  drawTemperatureHistoryPlot();
   
   // draw alarm min/max setting lines
+}
+
+void drawTemperatureHistoryPlot() {
+  int currentOffset = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_INDEX);
+  int16_t totalMin = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_TOTAL_MIN);
+  int16_t totalMax = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_TOTAL_MAX);
+  int16_t alarmMin = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_TOTAL_MIN);
+  int16_t alarmMax = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_TOTAL_MAX);
+  
+  // We map all displayed temperatures into a vertical range from 6 to 31 on the display. This is
+  // based on the alarm min/max or the recorded min/ax (i.e. whichever is greater).
+  int dispMin = min(alarmMin, totalMin);
+  int dispMax = max(alarmMax, totalMax);
+  int alarmMinY = map(alarmMin, dispMin, dispMax, 31, 6);
+  int alarmMaxY = map(alarmMax, dispMin, dispMax, 31, 6);
+  
+  for (byte i = 0; i < TEMPERATURE_RECORDS; i ++) {
+    int offset = (i + currentOffset) % TEMPERATURE_RECORDS;
+    int16_t minTemperature = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_MIN + (offset * 2));
+    int16_t maxTemperature = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_MAX + (offset * 2));
+    int minY = map(minTemperature, dispMin, dispMax, 31, 6);
+    int maxY = map(maxTemperature, dispMin, dispMax, 31, 6);
+    display.drawFastVLine(i, min(minY, maxY), max(1, abs(maxY - minY)), WHITE);
+    
+    if ((i & 0x01) == 1) {
+      display.drawPixel(i, alarmMinY, WHITE); 
+      display.drawPixel(i, alarmMaxY, WHITE); 
+    }
+  }  
 }
 
 void drawTemperatureHistogram() {
@@ -323,16 +351,32 @@ void drawTemperatureHistogram() {
   flexFontDrawStringLarge("HISTOGRAM");
 }
 
-void drawTemperatureAlarmMax() {
+void drawTemperatureAlarm(String title, int settingOffset) {
   display.clearDisplay();
-  flexFontSetPos(0, 0);
-  flexFontDrawStringLarge("MAX TEMP ALARM");
+  flexFontSetPos(10, 0);
+  flexFontDrawStringLarge(title);
+  
+  int16_t value = constrain(EEPROMReadInt16(settingOffset), -50 * 16, 100 * 16);
+
+  flexFontSetPos(82, 16);
+  flexFontDrawStringLargeRA(temperatureToString(value) + "[C");
+
+  display.fillTriangle(35, 20, 42, 13, 42, 27, WHITE);
+  display.fillTriangle(93, 20, 86, 13, 86, 27, WHITE);
+  flexFontColour(BLACK);
+  flexFontSetPos(38, 18);
+  flexFontDrawStringSmall("-");
+  flexFontSetPos(88, 18);
+  flexFontDrawStringSmall("+");
+  flexFontColour(WHITE);
 }
 
-void drawTemperatureAlarmMin() {
-  display.clearDisplay();
-  flexFontSetPos(0, 0);
-  flexFontDrawStringLarge("MIN TEMP ALARM");
+// Adjusts the given temperature setting (max or min alarm).
+// Note that the bottom 2 bits are thrown away to keep this clean (so finest adjustment is quarter of a degree).
+void adjustTemperatureAlarmSetting(int settingOffset, int delta, int minValue, int maxValue) {
+  int16_t value = EEPROMReadInt16(settingOffset) + delta;
+  value = constrain(value + delta, minValue, maxValue) & 0xFFF8;
+  EEPROMWriteInt16(settingOffset, value);
 }
 
 void drawInsulinChange() {
@@ -341,16 +385,28 @@ void drawInsulinChange() {
   flexFontDrawStringLarge("INSULIN CHANGE");
 }
 
-String temperatureWholeToString(int16_t t) {
-  return String(t >> 4, DEC);
-}
-
-String temperatureDecimalsToString(int16_t t) {
-  return String(int((t & 0x000F) * 0.625), DEC);
+String temperatureToString(int16_t t) {  
+  if (t < 0) {
+    return "-" + String((-t) >> 4, DEC) + "." + String(int(((-t) & 0x000F) * 0.625), DEC);
+  } else {
+    return String(t >> 4, DEC) + "." + String(int((t & 0x000F) * 0.625), DEC);
+  }
 }
 
 void flexFontDrawStringLarge(String s) {
-  flexFontDrawString(&display, s, Bit_Daylong11, Bit_Daylong11_width, Bit_Daylong11_offset, 8, '.');
+  flexFontDrawString(&display, s, Bit_Daylong11, Bit_Daylong11_width, Bit_Daylong11_offset, 8, '*');
+}
+
+void flexFontDrawStringLargeRA(String s) {
+  flexFontDrawStringRA(&display, s, Bit_Daylong11, Bit_Daylong11_width, Bit_Daylong11_offset, 8, '*');
+}
+
+void flexFontDrawStringSmall(String s) {
+  flexFontDrawString(&display, s, Picopixel5, Picopixel5_width, Picopixel5_offset, 6, '*');
+}
+
+void flexFontDrawStringSmallRA(String s) {
+  flexFontDrawStringRA(&display, s, Picopixel5, Picopixel5_width, Picopixel5_offset, 6, '*');
 }
 
 void displayOn() {
@@ -460,9 +516,9 @@ void getTemperatureAccumulateAndRecordIfNeeded()
   {
     // record the temperature for this period
     int readingIndex = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_INDEX) % TEMPERATURE_RECORDS;
-    EEPROMWriteInt16(EEPROM_OFFSET_TEMPERATURE_AVG + readingIndex, periodTemperatureAccumulator / periodTemperatureReadingCount);
-    EEPROMWriteInt16(EEPROM_OFFSET_TEMPERATURE_MIN + readingIndex, periodTemperatureMin);
-    EEPROMWriteInt16(EEPROM_OFFSET_TEMPERATURE_MAX + readingIndex, periodTemperatureMax);
+    EEPROMWriteInt16(EEPROM_OFFSET_TEMPERATURE_AVG + (readingIndex * 2), periodTemperatureAccumulator / periodTemperatureReadingCount);
+    EEPROMWriteInt16(EEPROM_OFFSET_TEMPERATURE_MIN + (readingIndex * 2), periodTemperatureMin);
+    EEPROMWriteInt16(EEPROM_OFFSET_TEMPERATURE_MAX + (readingIndex * 2), periodTemperatureMax);
     EEPROMWriteInt16(EEPROM_OFFSET_TEMPERATURE_INDEX, (readingIndex + 1) % TEMPERATURE_RECORDS);
 
     // reset ready for the next period
@@ -506,9 +562,6 @@ int16_t getTemperature(int x, byte start)
     ds.write(0xBE);  // read 1st 2 bytes of scratchpad
     for (i = 0; i < 2; i ++) data[i] = ds.read();
     currentTemperature = (data[1] << 8) | data[0];
-//    currentTemperature >>= 4;
-//    if (data[1] & 128) currentTemperature |= 61440;
-//    if (data[0] & 8) ++currentTemperature;
     ds.reset();
     ds.write(0xCC); // skip command
     ds.write(0x44, 1);  // start conversion, assuming 5V connected

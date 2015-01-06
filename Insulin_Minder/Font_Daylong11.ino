@@ -3,52 +3,78 @@
 // 
 // Font information for Bit Daylong11 (sRB) 8pt
 // Character height: 1
-// Start character: .
-// End character: Z
-// Width, in pixels, of space character: 2
+// Start character: *
+// End character: ° (degrees symbol)
+// Width, in pixels, of space character: 4
 
 #include <avr/pgmspace.h>
 
+// Character bitmaps for Bit Daylong11 (sRB) 8pt
 prog_uchar Bit_Daylong11[] PROGMEM = 
 {
-	// @0 '.' (2 pixels wide)
+	// @0 '*' (6 pixels wide)
+	0xA8, // # # #
+	0x20, //   #  
+	0xF8, // #####
+	0xF8, // #####
+	0x20, //   #  
+	0xA8, // # # #
+
+	// @6 '+' (6 pixels wide)
+	0x20, //   #  
+	0x20, //   #  
+	0x8F, // #####
+	0x8F, // #####
+	0x20, //   #  
+	0x20, //   #  
+
+	// @12 ',' (2 pixels wide)
+	0xB0, // # ##
+	0x70, //  ###
+
+	// @14 '-' (3 pixels wide)
+	0x10, // #
+	0x10, // #
+	0x10, // #
+
+	// @17 '.' (2 pixels wide)
 	0xC0, // ##
 	0xC0, // ##
 
-	// @2 '/' (4 pixels wide)
+	// @19 '/' (4 pixels wide)
 	0xC0, // ##      
 	0xFC, // ######  
 	0x3F, //   ######
 	0x03, //       ##
 
-	// @6 '0' (5 pixels wide)
+	// @23 '0' (5 pixels wide)
 	0x7E, //  ###### 
 	0xFF, // ########
 	0x81, // #      #
 	0xFF, // ########
 	0x7E, //  ###### 
 
-	// @11 '1' (4 pixels wide)
+	// @28 '1' (4 pixels wide)
 	0x0C, //     ##  
 	0x06, //      ## 
 	0xFF, // ########
 	0xFF, // ########
 
-	// @15 '2' (5 pixels wide)
+	// @32 '2' (5 pixels wide)
 	0xC2, // ##    # 
 	0xE3, // ###   ##
 	0xB1, // # ##   #
 	0x9F, // #  #####
 	0x8E, // #   ### 
 
-	// @20 '3' (5 pixels wide)
+	// @37 '3' (5 pixels wide)
 	0x42, //  #    # 
 	0xC3, // ##    ##
 	0x89, // #   #  #
 	0xFF, // ########
 	0x76, //  ### ## 
 
-	// @25 '4' (6 pixels wide)
+	// @42 '4' (6 pixels wide)
 	0x30, //   ##    
 	0x2C, //   # ##  
 	0x22, //   #   # 
@@ -56,50 +82,46 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0xFF, // ########
 	0x20, //   #     
 
-	// @31 '5' (5 pixels wide)
+	// @48 '5' (5 pixels wide)
 	0x4E, //  #  ### 
 	0xCF, // ##  ####
 	0x89, // #   #  #
 	0xF9, // #####  #
 	0x71, //  ###   #
 
-	// @36 '6' (5 pixels wide)
+	// @53 '6' (5 pixels wide)
 	0x7E, //  ###### 
 	0xFF, // ########
 	0x89, // #   #  #
 	0xFB, // ##### ##
 	0x72, //  ###  # 
 
-	// @41 '7' (5 pixels wide)
+	// @58 '7' (5 pixels wide)
 	0x01, //        #
 	0xF1, // ####   #
 	0xFD, // ###### #
 	0x0F, //     ####
 	0x03, //       ##
 
-	// @46 '8' (5 pixels wide)
+	// @63 '8' (5 pixels wide)
 	0x76, //  ### ## 
 	0xFF, // ########
 	0x89, // #   #  #
 	0xFF, // ########
 	0x76, //  ### ## 
 
-	// @51 '9' (5 pixels wide)
+	// @68 '9' (5 pixels wide)
 	0x4E, //  #  ### 
 	0xDF, // ## #####
 	0x91, // #  #   #
 	0xFF, // ########
 	0x7E, //  ###### 
 
-	// @56 ':' (2 pixels wide)
+	// @73 ':' (2 pixels wide)
 	0xCC, // ##  ##
 	0xCC, // ##  ##
 
-	// @58 ';' (2 pixels wide)
-	0xB3, // # ##  ##
-	0x73, //  ###  ##
-
-	// @60 '<' (6 pixels wide)
+	// @75 '<' (6 pixels wide)
 	0x30, //   ##  
 	0x30, //   ##  
 	0x48, //  #  # 
@@ -107,14 +129,14 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0x84, // #    #
 	0x84, // #    #
 
-	// @66 '=' (5 pixels wide)
+	// @81 '=' (5 pixels wide)
 	0x90, // #  #
 	0x90, // #  #
 	0x90, // #  #
 	0x90, // #  #
 	0x90, // #  #
 
-	// @71 '>' (6 pixels wide)
+	// @86 '>' (6 pixels wide)
 	0x84, // #    #
 	0x84, // #    #
 	0x48, //  #  # 
@@ -122,26 +144,14 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0x30, //   ##  
 	0x30, //   ##  
 
-	// @77 '?' (5 pixels wide)
+	// @92 '?' (5 pixels wide)
 	0x06, //      ## 
 	0xD3, // ## #  ##
 	0xD9, // ## ##  #
 	0x0F, //     ####
 	0x06, //      ## 
 
-	// @82 '@' (10 pixels wide)
-	0x1E, 0x00, //    ####   
-	0x61, 0x80, //  ##    ## 
-	0x5C, 0x80, //  # ###  # 
-	0xA3, 0x40, // # #   ## #
-	0xA1, 0x40, // # #    # #
-	0xB1, 0x40, // # ##   # #
-	0xBF, 0x40, // # ###### #
-	0xA3, 0x40, // # #   ## #
-	0x50, 0x80, //  # #    # 
-	0x4F, 0x00, //  #  ####  
-
-	// @102 'A' (7 pixels wide)
+	// @97 'A' (7 pixels wide)
 	0xE0, // ###     
 	0xFC, // ######  
 	0x3F, //   ######
@@ -150,7 +160,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0xFC, // ######  
 	0xE0, // ###     
 
-	// @109 'B' (6 pixels wide)
+	// @104 'B' (6 pixels wide)
 	0xFF, // ########
 	0xFF, // ########
 	0x89, // #   #  #
@@ -158,7 +168,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0xFF, // ########
 	0x76, //  ### ## 
 
-	// @115 'C' (7 pixels wide)
+	// @110 'C' (7 pixels wide)
 	0x3C, //   ####  
 	0x7E, //  ###### 
 	0xC3, // ##    ##
@@ -167,7 +177,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0xC3, // ##    ##
 	0x42, //  #    # 
 
-	// @122 'D' (6 pixels wide)
+	// @117 'D' (6 pixels wide)
 	0xFF, // ########
 	0xFF, // ########
 	0x81, // #      #
@@ -175,21 +185,21 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0xFF, // ########
 	0x7E, //  ###### 
 
-	// @128 'E' (5 pixels wide)
+	// @123 'E' (5 pixels wide)
 	0xFF, // ########
 	0xFF, // ########
 	0x89, // #   #  #
 	0x89, // #   #  #
 	0x89, // #   #  #
 
-	// @133 'F' (5 pixels wide)
+	// @128 'F' (5 pixels wide)
 	0xFF, // ########
 	0xFF, // ########
 	0x09, //     #  #
 	0x09, //     #  #
 	0x09, //     #  #
 
-	// @138 'G' (7 pixels wide)
+	// @133 'G' (7 pixels wide)
 	0x3C, //   ####  
 	0x7E, //  ###### 
 	0xC3, // ##    ##
@@ -198,7 +208,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0xF3, // ####  ##
 	0x72, //  ###  # 
 
-	// @145 'H' (6 pixels wide)
+	// @140 'H' (6 pixels wide)
 	0xFF, // ########
 	0xFF, // ########
 	0x08, //     #   
@@ -206,7 +216,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0xFF, // ########
 	0xFF, // ########
 
-	// @151 'I' (6 pixels wide)
+	// @146 'I' (6 pixels wide)
 	0x81, // #      #
 	0x81, // #      #
 	0xFF, // ########
@@ -214,14 +224,14 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0x81, // #      #
 	0x81, // #      #
 
-	// @157 'J' (5 pixels wide)
+	// @152 'J' (5 pixels wide)
 	0x41, //  #     #
 	0xC1, // ##     #
 	0x81, // #      #
 	0xFF, // ########
 	0x7F, //  #######
 
-	// @162 'K' (6 pixels wide)
+	// @157 'K' (6 pixels wide)
 	0xFF, // ########
 	0xFF, // ########
 	0x18, //    ##   
@@ -229,7 +239,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0xF7, // #### ###
 	0xC1, // ##     #
 
-	// @168 'L' (6 pixels wide)
+	// @163 'L' (6 pixels wide)
 	0xFF, // ########
 	0xFF, // ########
 	0x80, // #       
@@ -237,7 +247,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0x80, // #       
 	0x80, // #       
 
-	// @174 'M' (9 pixels wide)
+	// @169 'M' (9 pixels wide)
 	0xFF, // ########
 	0xFF, // ########
 	0x0F, //     ####
@@ -248,7 +258,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0xFF, // ########
 	0xFF, // ########
 
-	// @183 'N' (6 pixels wide)
+	// @178 'N' (6 pixels wide)
 	0xFF, // ########
 	0xFF, // ########
 	0x0C, //     ##  
@@ -256,7 +266,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0xFF, // ########
 	0xFF, // ########
 
-	// @189 'O' (7 pixels wide)
+	// @184 'O' (7 pixels wide)
 	0x3C, //   ####  
 	0x7E, //  ###### 
 	0xC3, // ##    ##
@@ -265,7 +275,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0x7E, //  ###### 
 	0x3C, //   ####  
 
-	// @196 'P' (6 pixels wide)
+	// @191 'P' (6 pixels wide)
 	0xFF, // ########
 	0xFF, // ########
 	0x11, //    #   #
@@ -273,7 +283,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0x1F, //    #####
 	0x0E, //     ### 
 
-	// @202 'Q' (7 pixels wide)
+	// @197 'Q' (7 pixels wide)
 	0x1E, 0x00, //    ####  
 	0x3F, 0x00, //   ###### 
 	0x61, 0x80, //  ##    ##
@@ -282,7 +292,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0xBF, 0x00, // # ###### 
 	0x1E, 0x00, //    ####  
 
-	// @216 'R' (7 pixels wide)
+	// @211 'R' (7 pixels wide)
 	0xFF, // ########
 	0xFF, // ########
 	0x11, //    #   #
@@ -291,7 +301,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0xCE, // ##  ### 
 	0x80, // #       
 
-	// @223 'S' (6 pixels wide)
+	// @218 'S' (6 pixels wide)
 	0xCE, // ##  ### 
 	0xCF, // ##  ####
 	0x99, // #  ##  #
@@ -299,7 +309,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0xF3, // ####  ##
 	0x72, //  ###  # 
 
-	// @229 'T' (8 pixels wide)
+	// @224 'T' (8 pixels wide)
 	0x01, //        #
 	0x01, //        #
 	0x01, //        #
@@ -309,7 +319,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0x01, //        #
 	0x01, //        #
 
-	// @237 'U' (6 pixels wide)
+	// @232 'U' (6 pixels wide)
 	0x7F, //  #######
 	0xFF, // ########
 	0x80, // #       
@@ -317,7 +327,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0xFF, // ########
 	0x7F, //  #######
 
-	// @243 'V' (7 pixels wide)
+	// @238 'V' (7 pixels wide)
 	0x03, //       ##
 	0x3F, //   ######
 	0xFC, // ######  
@@ -326,7 +336,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0x3F, //   ######
 	0x03, //       ##
 
-	// @250 'W' (11 pixels wide)
+	// @245 'W' (11 pixels wide)
 	0x03, //       ##
 	0x3F, //   ######
 	0xFC, // ######  
@@ -339,7 +349,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0x3F, //   ######
 	0x03, //       ##
 
-	// @261 'X' (6 pixels wide)
+	// @256 'X' (6 pixels wide)
 	0xC3, // ##    ##
 	0xE7, // ###  ###
 	0x3C, //   ####  
@@ -347,7 +357,7 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0xE7, // ###  ###
 	0xC3, // ##    ##
 
-	// @267 'Y' (6 pixels wide)
+	// @262 'Y' (6 pixels wide)
 	0x03, //       ##
 	0x0F, //     ####
 	0xF8, // #####   
@@ -355,17 +365,26 @@ prog_uchar Bit_Daylong11[] PROGMEM =
 	0x0F, //     ####
 	0x03, //       ##
 
-	// @273 'Z' (6 pixels wide)
+	// @268 'Z' (6 pixels wide)
 	0xC1, // ##     #
 	0xE1, // ###    #
 	0xB9, // # ###  #
 	0x9D, // #  ### #
 	0x87, // #    ###
 	0x83, // #     ##
+
+	// @274 '°' (3 pixels wide)
+	0x02,            
+	0x05,            
+	0x02,            
 };
 
 prog_uchar Bit_Daylong11_width[] PROGMEM = 
-{
+{	
+	6, 		// * 
+	6, 		// + 
+	2, 		// , 
+	3, 		// - 
 	2, 		// . 
 	4, 		// / 
 	5, 		// 0 
@@ -379,12 +398,12 @@ prog_uchar Bit_Daylong11_width[] PROGMEM =
 	5, 		// 8 
 	5, 		// 9 
 	2, 		// : 
-	2, 		// ; 
+	0, 		// ; 
 	6, 		// < 
 	5, 		// = 
 	6, 		// > 
 	5, 		// ? 
-	10, 	// @ 
+	0, 		// @ 
 	7, 		// A 
 	6, 		// B 
 	7, 		// C 
@@ -407,60 +426,64 @@ prog_uchar Bit_Daylong11_width[] PROGMEM =
 	8, 		// T 
 	6, 		// U 
 	7, 		// V 
-	11, 	// W 
+	11, 		// W 
 	6, 		// X 
 	6, 		// Y 
 	6, 		// Z 
+	3, 		// ° (mapped to '[')
 };
 
 prog_uint16_t Bit_Daylong11_offset[] PROGMEM = 
 {
-	0, 			// . 
-	2, 			// / 
-	6, 			// 0 
-	11, 		// 1 
-	15, 		// 2 
-	20, 		// 3 
-	25, 		// 4 
-	31, 		// 5 
-	36, 		// 6 
-	41, 		// 7 
-	46, 		// 8 
-	51, 		// 9 
-	56, 		// : 
-	58, 		// ; 
-	60, 		// < 
-	66, 		// = 
-	71, 		// > 
-	77, 		// ? 
-	82, 		// @ 
-	102, 		// A 
-	109, 		// B 
-	115, 		// C 
-	122, 		// D 
-	128, 		// E 
-	133, 		// F 
-	138, 		// G 
-	145, 		// H 
-	151, 		// I 
-	157, 		// J 
-	162, 		// K 
-	168, 		// L 
-	174, 		// M 
-	183, 		// N 
-	189, 		// O 
-	196, 		// P 
-	202, 		// Q 
-	216, 		// R 
-	223, 		// S 
-	229, 		// T 
-	237, 		// U 
-	243, 		// V 
-	250, 		// W 
-	261, 		// X 
-	267, 		// Y 
-	273, 		// Z 
+	0, 		// * 
+	6, 		// + 
+	12, 		// , 
+	14, 		// - 
+	17, 		// . 
+	19, 		// / 
+	23, 		// 0 
+	28, 		// 1 
+	32, 		// 2 
+	37, 		// 3 
+	42, 		// 4 
+	48, 		// 5 
+	53, 		// 6 
+	58, 		// 7 
+	63, 		// 8 
+	68, 		// 9 
+	73, 		// : 
+	0, 		// ; 
+	75, 		// < 
+	81, 		// = 
+	86, 		// > 
+	92, 		// ? 
+	0, 		// @ 
+	97, 		// A 
+	104, 		// B 
+	110, 		// C 
+	117, 		// D 
+	123, 		// E 
+	128, 		// F 
+	133, 		// G 
+	140, 		// H 
+	146, 		// I 
+	152, 		// J 
+	157, 		// K 
+	163, 		// L 
+	169, 		// M 
+	178, 		// N 
+	184, 		// O 
+	191, 		// P 
+	197, 		// Q 
+	211, 		// R 
+	218, 		// S 
+	224, 		// T 
+	232, 		// U 
+	238, 		// V 
+	245, 		// W 
+	256, 		// X 
+	262, 		// Y 
+	268, 		// Z 
+	274, 		// ° (mapped to '[')
 };
-
-
 
