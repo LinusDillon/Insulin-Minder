@@ -76,10 +76,16 @@ const unsigned int EEPROM_OFFSET_TEMPERATURE_TOTAL_MAX = EEPROM_OFFSET_TEMPERATU
 const unsigned int EEPROM_OFFSET_TEMPERATURE_INDEX = EEPROM_OFFSET_TEMPERATURE_TOTAL_MAX + 2;
 const unsigned int EEPROM_OFFSET_TEMPERATURE_ALARM_MAX = EEPROM_OFFSET_TEMPERATURE_INDEX + 2;
 const unsigned int EEPROM_OFFSET_TEMPERATURE_ALARM_MIN = EEPROM_OFFSET_TEMPERATURE_ALARM_MAX + 2;
-const unsigned int EEPROM_MAX = EEPROM_OFFSET_TEMPERATURE_ALARM_MIN + 2;
+const unsigned int EEPROM_OFFSET_INSULIN_AGE = EEPROM_OFFSET_TEMPERATURE_ALARM_MIN + 2;
+const unsigned int EEPROM_MAX = EEPROM_OFFSET_INSULIN_AGE + 2;
+
+const long BATTERY_MIN = 3700;
+const long BATTERY_LOW = 3800;
+const long BATTERY_MAX = 4200;
 
 // UI Constants
 const unsigned long UI_INACTIVITY_MILLISECONDS = 10000;
+const unsigned long PRESS_AND_HOLD_MS = 3000;
 
 // UI States
 const byte UI_STATE_FIRST = 1;
@@ -88,7 +94,8 @@ const byte UI_STATE_TEMPERATURE_HISTOGRAM = 2;
 const byte UI_STATE_SET_MAX_TEMPERATURE = 3;
 const byte UI_STATE_SET_MIN_TEMPERATURE = 4;
 const byte UI_STATE_FRESH_INSULIN = 5;
-const byte UI_STATE_LAST = 5;
+const byte UI_STATE_BATTERY_STATUS = 6;
+const byte UI_STATE_LAST = 6;
 
 // Program state globals
 unsigned long masterTime;
@@ -101,10 +108,14 @@ unsigned long periodTemperatureStart;
 unsigned long periodTemperatureReadingCount;
 unsigned long periodTemperatureAccumulator;
 
+long currentBattery;
+
 boolean userWake; 
 boolean uiLoopStart;
 byte uiState;
 unsigned long lastButtonPressTime;
+boolean pressedAndHeld;
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setup()   {                
@@ -166,6 +177,7 @@ void loop() {
   // Check for a temperature alarm and display if required.
   
   // Check for a battery alarm and display if required.
+  currentBattery = getVccSmooth();
   
   // Check for a button press and enter main UI loop if required.
   if (userWake) {
@@ -203,6 +215,9 @@ void uiLoop()
       case UI_STATE_FRESH_INSULIN :
         drawInsulinChange();
         break;
+      case UI_STATE_BATTERY_STATUS :
+        drawBatteryStatus();
+        break;
     }
     
     displayOn();
@@ -212,9 +227,11 @@ void uiLoop()
     if (nav == NAV_N_PIN) {
       uiState = (uiState - 1);
       if (uiState < UI_STATE_FIRST) uiState = UI_STATE_LAST;
+      pressedAndHeld = false;
     } else if (nav == NAV_S_PIN) {
       uiState = (uiState + 1);
       if (uiState > UI_STATE_LAST) uiState = UI_STATE_FIRST;
+      pressedAndHeld = false;
     } else if (nav != NAV_NONE) {
       switch (uiState)
       {
@@ -239,6 +256,10 @@ void uiLoop()
           }
           break;
         case UI_STATE_FRESH_INSULIN :
+          if (navC.read() == LOW && navC.duration() >= PRESS_AND_HOLD_MS) {
+            freshInsulin();
+            pressedAndHeld = true;
+          }
           break;
       }
     } else {
@@ -247,6 +268,7 @@ void uiLoop()
     }
     
     getTemperatureAccumulateAndRecordIfNeeded();
+    currentBattery = getVccSmooth();
     delay(10);
   }
   while ((millis() - lastButtonPressTime) < UI_INACTIVITY_MILLISECONDS);
@@ -274,7 +296,7 @@ byte readNavigationStick() {
     else if (navS.fallingEdge()) { result = NAV_S_PIN; navS.rebounce(500); }
     else if (navE.fallingEdge()) { result = NAV_E_PIN; navE.rebounce(500); }
     else if (navW.fallingEdge()) { result = NAV_W_PIN; navW.rebounce(500); }
-    else if (navC.fallingEdge()) { result = NAV_C_PIN; navC.rebounce(500); }
+    else if (navC.fallingEdge()) { result = NAV_C_PIN; }
     
     // We have detected a button press, but if this is the first one after being woken by the user we need to ignore it.
     if (uiLoopStart) {
@@ -325,17 +347,17 @@ void drawTemperatureHistoryPlot() {
   
   // We map all displayed temperatures into a vertical range from 6 to 31 on the display. This is
   // based on the alarm min/max or the recorded min/ax (i.e. whichever is greater).
-  int dispMin = min(alarmMin, totalMin);
-  int dispMax = max(alarmMax, totalMax);
-  int alarmMinY = map(alarmMin, dispMin, dispMax, 31, 6);
-  int alarmMaxY = map(alarmMax, dispMin, dispMax, 31, 6);
+  int dispMin = totalMin;//min(alarmMin, totalMin);
+  int dispMax = totalMax;//max(alarmMax, totalMax);
+  int alarmMinY = constrain(map(alarmMin, dispMin, dispMax, 31, 6), 6, 31);
+  int alarmMaxY = constrain(map(alarmMax, dispMin, dispMax, 31, 6), 6, 31);
   
   for (byte i = 0; i < TEMPERATURE_RECORDS; i ++) {
     int offset = (i + currentOffset) % TEMPERATURE_RECORDS;
     int16_t minTemperature = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_MIN + (offset * 2));
     int16_t maxTemperature = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_MAX + (offset * 2));
-    int minY = map(minTemperature, dispMin, dispMax, 31, 6);
-    int maxY = map(maxTemperature, dispMin, dispMax, 31, 6);
+    int minY = constrain(map(minTemperature, dispMin, dispMax, 31, 6), 6, 31);
+    int maxY = constrain(map(maxTemperature, dispMin, dispMax, 31, 6), 6, 31);
     display.drawFastVLine(i, min(minY, maxY), max(1, abs(maxY - minY)), WHITE);
     
     if ((i & 0x01) == 1) {
@@ -381,8 +403,34 @@ void adjustTemperatureAlarmSetting(int settingOffset, int delta, int minValue, i
 
 void drawInsulinChange() {
   display.clearDisplay();
-  flexFontSetPos(0, 0);
+  flexFontSetPos(16, 0);
   flexFontDrawStringLarge("INSULIN CHANGE");
+  if (pressedAndHeld) {
+    flexFontSetPos(48, 16);
+    flexFontDrawStringSmall("DONE");
+  } else {
+    flexFontSetPos(4, 16);
+    flexFontDrawStringSmall("PRESS AND HOLD TO CLEAR HISTORY");
+  }
+}
+
+void drawBatteryStatus() {
+  display.clearDisplay();
+  flexFontSetPos(40, 0);
+  flexFontDrawStringLarge("BATTERY");
+  
+  display.drawRect(8, 12, 112, 20, WHITE);
+  display.fillRect(120, 17, 5, 10, WHITE);
+  display.fillRect(8, 12, constrain(map(currentBattery, BATTERY_LOW, BATTERY_MAX, 0, 112), 0, 112), 20, WHITE);
+
+  flexFontColour(INVERSE);
+  flexFontSetPos(48, 16);
+  flexFontDrawStringLarge(String(currentBattery / 1000, DEC) + "." + String(currentBattery % 1000 / 100, DEC) + String(currentBattery % 100 / 10, DEC) + "V");
+  flexFontColour(WHITE);
+  
+//  const long BATTERY_MIN = 3700;
+//const long BATTERY_LOW = 3800;
+//const long BATTERY_MAX = 4200;
 }
 
 String temperatureToString(int16_t t) {  
@@ -520,6 +568,10 @@ void getTemperatureAccumulateAndRecordIfNeeded()
     EEPROMWriteInt16(EEPROM_OFFSET_TEMPERATURE_MIN + (readingIndex * 2), periodTemperatureMin);
     EEPROMWriteInt16(EEPROM_OFFSET_TEMPERATURE_MAX + (readingIndex * 2), periodTemperatureMax);
     EEPROMWriteInt16(EEPROM_OFFSET_TEMPERATURE_INDEX, (readingIndex + 1) % TEMPERATURE_RECORDS);
+    
+    int insulinAge = EEPROMReadInt16(EEPROM_OFFSET_INSULIN_AGE);
+    insulinAge += TEMPERATURE_REC_INTERVAL_SECONDS;
+    EEPROMWriteInt16(EEPROM_OFFSET_INSULIN_AGE, insulinAge);
 
     // reset ready for the next period
     resetTemperaturePeriod();
@@ -532,6 +584,13 @@ void resetTemperaturePeriod() {
   periodTemperatureAccumulator = 0;
   periodTemperatureMin = 32767;
   periodTemperatureMax = 0;
+}
+
+void freshInsulin() {
+  resetTemperaturePeriod();
+  EEPROMWriteInt16(EEPROM_OFFSET_TEMPERATURE_TOTAL_MIN, currentTemperature);
+  EEPROMWriteInt16(EEPROM_OFFSET_TEMPERATURE_TOTAL_MAX, currentTemperature);
+  EEPROMWriteInt16(EEPROM_OFFSET_INSULIN_AGE, 0);
 }
 
 void EEPROMWriteInt16(int address, int16_t val)
@@ -584,6 +643,14 @@ long getVcc() {
   result |= ADCH<<8;
   result = 1126400L / result; // Back-calculate AVcc in mV
   return result;
+}
+
+long getVccSmooth() {
+  long result = 0;
+  for (byte i = 0; i < 10; i ++) {
+    result += getVcc();
+  }
+  return result / 10;
 }
 
 void clearEEPROM() {
