@@ -43,14 +43,14 @@ Adafruit_SSD1306 display(OLED_RESET);
 #endif
 
 // Temperature Sensor
-#define TEMP_SENSOR_PIN 3
+#define TEMP_SENSOR_PIN 6
 
 // Navigation Stick
 #define NAV_NONE (-1)
-#define NAV_N_PIN 8
+#define NAV_N_PIN 12
 #define NAV_S_PIN 10
 #define NAV_E_PIN 11
-#define NAV_W_PIN 12
+#define NAV_W_PIN 8
 #define NAV_C_PIN 9
 #define NAV_DEBOUNCE_TIME 1
 
@@ -90,12 +90,12 @@ const unsigned long PRESS_AND_HOLD_MS = 3000;
 // UI States
 const byte UI_STATE_FIRST = 1;
 const byte UI_STATE_TEMPERATURE_HISTORY = 1;
-const byte UI_STATE_TEMPERATURE_HISTOGRAM = 2;
-const byte UI_STATE_SET_MAX_TEMPERATURE = 3;
-const byte UI_STATE_SET_MIN_TEMPERATURE = 4;
-const byte UI_STATE_FRESH_INSULIN = 5;
-const byte UI_STATE_BATTERY_STATUS = 6;
-const byte UI_STATE_LAST = 6;
+//const byte UI_STATE_TEMPERATURE_HISTOGRAM = 2;
+const byte UI_STATE_SET_MAX_TEMPERATURE = 2;
+const byte UI_STATE_SET_MIN_TEMPERATURE = 3;
+const byte UI_STATE_FRESH_INSULIN = 4;
+const byte UI_STATE_BATTERY_STATUS = 5;
+const byte UI_STATE_LAST = 5;
 
 // Program state globals
 unsigned long masterTime;
@@ -203,9 +203,9 @@ void uiLoop()
       case UI_STATE_TEMPERATURE_HISTORY :
         drawTemperatureHistory();
         break;
-      case UI_STATE_TEMPERATURE_HISTOGRAM :
-        drawTemperatureHistogram();
-        break;
+//      case UI_STATE_TEMPERATURE_HISTOGRAM :
+//        drawTemperatureHistogram();
+//        break;
       case UI_STATE_SET_MAX_TEMPERATURE :
         drawTemperatureAlarm("MAX TEMP ALARM", EEPROM_OFFSET_TEMPERATURE_ALARM_MAX);
         break;
@@ -238,9 +238,9 @@ void uiLoop()
         case UI_STATE_TEMPERATURE_HISTORY :
           // no user interaction on this screen
           break;
-        case UI_STATE_TEMPERATURE_HISTOGRAM :
-          // no user interaction on this screen
-          break;
+//        case UI_STATE_TEMPERATURE_HISTOGRAM :
+//          // no user interaction on this screen
+//          break;
         case UI_STATE_SET_MAX_TEMPERATURE :
           if (nav == NAV_W_PIN) {
             adjustTemperatureAlarmSetting(EEPROM_OFFSET_TEMPERATURE_ALARM_MAX, -4, EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_ALARM_MIN), MAX_TEMP_ALARM);
@@ -342,15 +342,15 @@ void drawTemperatureHistoryPlot() {
   int currentOffset = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_INDEX);
   int16_t totalMin = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_TOTAL_MIN);
   int16_t totalMax = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_TOTAL_MAX);
-  int16_t alarmMin = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_TOTAL_MIN);
-  int16_t alarmMax = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_TOTAL_MAX);
+  int16_t alarmMin = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_ALARM_MIN);
+  int16_t alarmMax = EEPROMReadInt16(EEPROM_OFFSET_TEMPERATURE_ALARM_MAX);
   
   // We map all displayed temperatures into a vertical range from 6 to 31 on the display. This is
-  // based on the alarm min/max or the recorded min/ax (i.e. whichever is greater).
+  // based on the recorded min/ax (i.e. whichever is greater).
   int dispMin = totalMin;//min(alarmMin, totalMin);
   int dispMax = totalMax;//max(alarmMax, totalMax);
-  int alarmMinY = constrain(map(alarmMin, dispMin, dispMax, 31, 6), 6, 31);
-  int alarmMaxY = constrain(map(alarmMax, dispMin, dispMax, 31, 6), 6, 31);
+  int alarmMinY = map(alarmMin, dispMin, dispMax, 31, 6);
+  int alarmMaxY = map(alarmMax, dispMin, dispMax, 31, 6);
   
   for (byte i = 0; i < TEMPERATURE_RECORDS; i ++) {
     int offset = (i + currentOffset) % TEMPERATURE_RECORDS;
@@ -361,8 +361,14 @@ void drawTemperatureHistoryPlot() {
     display.drawFastVLine(i, min(minY, maxY), max(1, abs(maxY - minY)), WHITE);
     
     if ((i & 0x01) == 1) {
-      display.drawPixel(i, alarmMinY, WHITE); 
-      display.drawPixel(i, alarmMaxY, WHITE); 
+      if (alarmMinY >= 6 && alarmMinY <= 31)
+      {
+        display.drawPixel(i, alarmMinY, WHITE); 
+      }
+      if (alarmMaxY >= 6 && alarmMaxY <= 31)
+      {      
+        display.drawPixel(i, alarmMaxY, WHITE); 
+      }
     }
   }  
 }
