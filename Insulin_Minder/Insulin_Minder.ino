@@ -503,6 +503,10 @@ void sleep() {
   
   // Choose our preferred sleep mode
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  
+  // disable ADC
+  byte adcsra_save = ADCSRA;
+  ADCSRA = 0; 
    
   // Set sleep enable (SE) bit
   sleep_enable();
@@ -515,6 +519,9 @@ void sleep() {
   
   // Re-endable all this peripherals
   power_all_enable();
+  
+  // Re-enable ADC
+  ADCSRA = adcsra_save;
 }
 
 // Interupt handler for pin change interrupts on port B
